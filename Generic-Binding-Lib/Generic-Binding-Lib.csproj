@@ -43,8 +43,10 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Additions\Example.CustomListConsumer.cs" />
     <Compile Include="Additions\Example.ErasedGenericType.cs" />
     <Compile Include="Additions\Example.GenericType.cs" />
+    <Compile Include="Additions\Example.ICustomList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
