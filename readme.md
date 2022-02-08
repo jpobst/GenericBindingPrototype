@@ -1,7 +1,5 @@
 # POC for binding Java generics as C# generics
 
-*TL;DR*
-
 Today, we allow Java to invoke into a C# type by using a static method in the C# type which we can call with reflection.
 
 For example, given:
@@ -29,7 +27,7 @@ public class ArrayList
 }
 ```
 
-However if `ArrayList` was generic, you cannot call it without knowing what `T` is, which you cannot know in a generic type.
+However if `ArrayList` was generic, you cannot call it without knowing what `T` is, which you cannot know in a `static` method.
 
 ```csharp
 public class ArrayList<T>
@@ -48,13 +46,18 @@ This POC proposes having both a `static` invoker AND an `instance` invoker:
 - The static invoker calls the instance invoker
 - The instance invoker calls the desired method
 
-This works because the instance invoker can use the type parameters (`T`) for casts.
+The instance invoker method is defined on a non-generic "Invoker" interface so it can be called without needing generic type information,
+but is implemented as an instance method in the generic bound class which does have access to generic type information needed to call the user's method.
+
+This extra level of indirection incurs a ~2%-3% performance penalty when marshaling methods that use generic types:
+https://github.com/xamarin/java.interop/issues/918#issuecomment-1006950735
 
 ## Binding a generic Java class example
 
 Full sample:
 - [Java Type](https://github.com/jpobst/GenericBindingPrototype/blob/main/java/GenericType.java)
 - [C# Bound Type](https://github.com/jpobst/GenericBindingPrototype/blob/main/Generic-Binding-Lib/Additions/Example.GenericType.cs)
+- [Usage](https://github.com/jpobst/GenericBindingPrototype/blob/main/Generic-Binding-Lib-Sample/MainActivity.cs#L77-L98)
 
 ```csharp
 public interface IArrayListInvoker
@@ -72,6 +75,7 @@ public class ArrayList<T> : IArrayListInvoker
 	// Static invoker
 	public static void n_Add (IntPtr jnienv, IntPtr native__this, IntPtr native_p0)
 	{
+		// Cast as non-generic IArrayListInvoker type
 		var __this = global::Java.Lang.Object.GetObject<global::IArrayListInvoker> (jnienv, native__this, JniHandleOwnership.DoNotTransfer);
 		var p0 = global::Java.Lang.Object.GetObject<global::Java.Lang.Object> (native_p0, JniHandleOwnership.DoNotTransfer);
 		__this.InvokeAdd (p0);
@@ -87,18 +91,20 @@ public class ArrayList<T> : IArrayListInvoker
 Full sample:
 - [Java Type](https://github.com/jpobst/GenericBindingPrototype/blob/main/java/CustomList.java)
 - [C# Bound Type](https://github.com/jpobst/GenericBindingPrototype/blob/main/Generic-Binding-Lib/Additions/Example.ICustomList.cs)
+- [Usage](https://github.com/jpobst/GenericBindingPrototype/blob/main/Generic-Binding-Lib-Sample/MainActivity.cs#L27-L52)
 
-Binding a generic Java interface is a bit more challenging, but we (ab)use default interface
-members in order to accomplish the same static invoker -> instance invoker strategy.
+Binding a generic Java interface is a bit more challenging, but we can (ab)use default interface
+members in order to accomplish the same "static invoker" -> "instance invoker" strategy.
 
-Generic Java interface
+**Generic Java interface**
 
 ```java
 interface CustomList<T> {
 	bool add (T obj);
 }
+```
 
-C# binding
+**C# binding**
 
 ```csharp
 public interface ICustomListInterfaceInvoker : IJavaObject, Java.Interop.IJavaPeerable
@@ -113,7 +119,7 @@ public partial interface ICustomList<T> : IJavaObject, Java.Interop.IJavaPeerabl
 	[Register ("add", "(Ljava/lang/Object;)Z", "GetAdd_Ljava_lang_Object_Handler:Example.ICustomListInvoker, Generic-Binding-Lib")]
 	bool Add (T p0);
 
-	// Instance invoker
+	// Instance invoker (DIM)
 	bool ICustomListInterfaceInvoker.InvokeAdd (global::Java.Lang.Object obj) => Add (obj.JavaCast<T> ());
 }
 
@@ -128,6 +134,7 @@ internal partial class ICustomListInvoker : global::Java.Lang.Object
 	// Static invoker
 	static bool n_Add_Ljava_lang_Object_ (IntPtr jnienv, IntPtr native__this, IntPtr native_p0)
 	{
+		// Cast as non-generic ICustomListInterfaceInvoker type
 		var __this = global::Java.Lang.Object.GetObject<global::Example.ICustomListInterfaceInvoker> (jnienv, native__this, JniHandleOwnership.DoNotTransfer);
 		var p0 = global::Java.Lang.Object.GetObject<global::Java.Lang.Object> (native_p0, JniHandleOwnership.DoNotTransfer);
 		return __this.InvokeAdd (p0);
