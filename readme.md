@@ -41,6 +41,24 @@ public class ArrayList<T>
 }
 ```
 
+You also can't call the method in the first place with reflection, because you need to provide `T` to invoke the method:
+
+```csharp
+public class Test<T>
+{
+	public static void DoThing () { }
+}
+
+var type = Assembly.GetExecutingAssembly ().GetType ("Test`1");
+var method = type.GetMethod ("DoThing", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+method.Invoke (null, null);
+```
+
+produces:
+```
+System.InvalidOperationException: Late bound operations cannot be performed on types or methods for which ContainsGenericParameters is true.
+```
+
 This POC proposes having both a `static` invoker AND an `instance` invoker:
 - Java calls the static invoker
 - The static invoker calls the instance invoker
