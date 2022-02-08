@@ -99,8 +99,8 @@ members in order to accomplish the same "static invoker" -> "instance invoker" s
 **Generic Java interface**
 
 ```java
-interface CustomList<T> {
-	bool add (T obj);
+public interface CustomList<T> {
+	public abstract boolean add (T obj);
 }
 ```
 
