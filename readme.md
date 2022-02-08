@@ -60,7 +60,7 @@ Full sample:
 - [Usage](https://github.com/jpobst/GenericBindingPrototype/blob/main/Generic-Binding-Lib-Sample/MainActivity.cs#L77-L98)
 
 ```csharp
-public interface IArrayListInvoker
+public interface IArrayListInvoker : IJavaObject, Java.Interop.IJavaPeerable
 {
 	void InvokeAdd (Object obj);
 }
