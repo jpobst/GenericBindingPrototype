@@ -1,21 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using Android.App;
-using Android.OS;
-using Android.Widget;
-using AndroidX.AppCompat.App;
 using Example;
 
 namespace Generic_Binding_Lib_Sample
 {
-	[Activity (Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true)]
-	public class MainActivity : AppCompatActivity
+	[Activity (Label = "@string/app_name", MainLauncher = true)]
+	public class MainActivity : Activity
 	{
-		protected override void OnCreate (Bundle savedInstanceState)
+		protected override void OnCreate (Bundle? savedInstanceState)
 		{
 			base.OnCreate (savedInstanceState);
-			Xamarin.Essentials.Platform.Init (this, savedInstanceState);
 
 			// Set our view from the "main" layout resource
 			SetContentView (Resource.Layout.activity_main);
@@ -81,11 +73,11 @@ namespace Generic_Binding_Lib_Sample
 			var non_generic = new MyErasedGenericType ();
 			var generic = new MyGenericType<Android.Graphics.Point> ();
 
-			var sw = Stopwatch.StartNew ();
+			var sw = System.Diagnostics.Stopwatch.StartNew ();
 			non_generic.TestPerformance (my_class, 100000);
 			var t1 = $"erased: {sw.ElapsedMilliseconds}ms";
 
-			sw = Stopwatch.StartNew ();
+			sw = System.Diagnostics.Stopwatch.StartNew ();
 			generic.TestPerformance (my_class, 100000);
 			var t2 = $"generic: {sw.ElapsedMilliseconds}ms";
 
