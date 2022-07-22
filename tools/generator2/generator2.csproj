@@ -8,12 +8,28 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Adapters\**" />
+    <Compile Remove="Extensions\**" />
+    <Compile Remove="Fixups\**" />
+    <Compile Remove="SourceWriters\**" />
+    <EmbeddedResource Remove="Adapters\**" />
+    <EmbeddedResource Remove="Extensions\**" />
+    <EmbeddedResource Remove="Fixups\**" />
+    <EmbeddedResource Remove="SourceWriters\**" />
+    <None Remove="Adapters\**" />
+    <None Remove="Extensions\**" />
+    <None Remove="Fixups\**" />
+    <None Remove="SourceWriters\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Mono.Cecil" Version="0.11.4" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\external\Javil\Javil.csproj" />
     <ProjectReference Include="..\..\external\Xamarin.SourceWriter\Xamarin.SourceWriter.csproj" />
+    <ProjectReference Include="..\..\src\Java.Interop.Generator\Java.Interop.Generator.csproj" />
   </ItemGroup>
 
 </Project>

@@ -13,6 +13,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "generator2", "tools\generat
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "external", "external", "{56BFBDE5-6B2F-459C-884A-464B234BD04B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Java.Interop.Generator", "src\Java.Interop.Generator\Java.Interop.Generator.csproj", "{0696BD5A-8C59-45F9-B17F-24C5A1FB984A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Java.Interop.Generator-Tests", "tests\Java.Interop.Generator-Tests\Java.Interop.Generator-Tests.csproj", "{F4977A69-5EFD-4870-B719-C2F5D824AC4C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +39,14 @@ Global
 		{4B38AB9F-3498-407E-89C6-FE595D564095}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B38AB9F-3498-407E-89C6-FE595D564095}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B38AB9F-3498-407E-89C6-FE595D564095}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0696BD5A-8C59-45F9-B17F-24C5A1FB984A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0696BD5A-8C59-45F9-B17F-24C5A1FB984A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0696BD5A-8C59-45F9-B17F-24C5A1FB984A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0696BD5A-8C59-45F9-B17F-24C5A1FB984A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4977A69-5EFD-4870-B719-C2F5D824AC4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4977A69-5EFD-4870-B719-C2F5D824AC4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4977A69-5EFD-4870-B719-C2F5D824AC4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4977A69-5EFD-4870-B719-C2F5D824AC4C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

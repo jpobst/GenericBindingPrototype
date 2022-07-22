@@ -1,7 +1,7 @@
 using Javil;
 using Xamarin.SourceWriter;
 
-namespace generator2;
+namespace Java.Interop.Generator;
 
 class BoundMethod : MethodWriter
 {

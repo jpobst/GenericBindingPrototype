@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Java.Interop.Generator;
 using Javil;
 
 namespace generator2;
@@ -28,13 +29,13 @@ public class Program
 
 		// Read the jar
 		var container = ContainerDefinition.ReadContainer (jar);
-
 		Console.WriteLine ($"Parse: {sw.ElapsedMilliseconds}ms");
+
 		sw.Restart ();
 
 		// Generate the binding
-		var pw = new BindingsWriter (outputDir);
-		pw.WriteProject (container);
+		var bw = new BindingsWriter (outputDir);
+		bw.WriteProject (container);
 
 		Console.WriteLine ($"Generate: {sw.ElapsedMilliseconds}ms");
 	}

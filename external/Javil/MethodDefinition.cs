@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 
 namespace Javil;
 
@@ -25,6 +25,7 @@ public class MethodDefinition : MemberReference, IMemberDefinition, IGenericPara
     public bool IsSynthetic { get; set; }
     public bool IsConstructor => Name == "<init>";
     public bool IsDeprecated { get; set; }
+	public bool IsDefaultInterfaceMethod => DeclaringType?.Resolve ()?.IsInterface == true && !IsAbstract && !IsStatic;
     public Nullability ReturnTypeNullability { get; set; }
     public bool HasCheckedExceptions => checkedExceptions?.Any () == true;
     public bool HasGenericParameters => generic_parameters?.Any () == true;
@@ -38,7 +39,12 @@ public class MethodDefinition : MemberReference, IMemberDefinition, IGenericPara
         ReturnType = returnType;
     }
 
-    public MethodDefinition? FindDeclaredBaseMethodOrDefault ()
+	/// <summary>
+	/// Finds this method's oringinally declared base method implemented in a class. For example,
+	/// if classes Child, Parent, and GrandParent all define the method, this will return
+	/// the GrandParent's method when requested for the Child.
+	/// </summary>
+	public MethodDefinition? FindDeclaredBaseMethodOrDefault ()
     {
         var candidate = FindBaseMethodOrDefault ();
 
@@ -55,10 +61,27 @@ public class MethodDefinition : MemberReference, IMemberDefinition, IGenericPara
         }
     }
 
+	/// <summary>
+	/// Finds this method's most direct base method implemented in a class. For example,
+	/// if classes Child, Parent, and GrandParent all define the method, this will return
+	/// the Parent's method when requested for the Child.
+	/// </summary>
     public MethodDefinition? FindBaseMethodOrDefault ()
     {
         return FindBaseMethod (DeclaringType?.Resolve ()?.BaseType?.Resolve ());
     }
+
+	public IEnumerable<MethodDefinition> FindImplementedInterfaceMethods ()
+	{
+		var results = new List<MethodDefinition> ();
+
+		// If this method definition is in an interface, we only need to collect
+		// Need to include base types
+		//foreach (var iface in DeclaringType?.Resolve ()?.ImplementedInterfaces)
+		//	foreach (var method in FindImplementedInterfaceMethods ())
+
+				throw new NotImplementedException ();
+	}
 
     public virtual IEnumerable<GenericParameter> GetGenericParametersInScope ()
     {
@@ -79,13 +102,30 @@ public class MethodDefinition : MemberReference, IMemberDefinition, IGenericPara
         var candidates = type.Methods.OfType<MethodDefinition> ().Where (m => m.Name == Name && m.Parameters.Count == Parameters.Count);
 
         foreach (var candidate in candidates)
-            if (AreMethodsCompatible (this, candidate))
+            if (AreMethodsCompatible (candidate))
                 return candidate;
 
         return FindBaseMethod (type.BaseType?.Resolve ());
     }
 
-    protected override IMemberDefinition? ResolveDefinition ()
+	private IEnumerable<MethodDefinition> FindImplementedInterfaceMethods (TypeDefinition? type)
+	{
+		if (type is null || !type.IsInterface)
+			yield break;
+
+		var candidates = type.Methods.OfType<MethodDefinition> ().Where (m => m.Name == Name && m.Parameters.Count == Parameters.Count);
+
+		foreach (var candidate in candidates)
+			if (AreMethodsCompatible (candidate))
+				yield return candidate;
+
+		// This will recurse through interfaces implemented by this interface
+		foreach (var base_iface in type.ImplementedInterfaces)
+			foreach (var method in FindImplementedInterfaceMethods (base_iface.InterfaceType.Resolve ()))
+				yield return method;
+	}
+
+	protected override IMemberDefinition? ResolveDefinition ()
     {
         return this;
     }
@@ -106,10 +146,13 @@ public class MethodDefinition : MemberReference, IMemberDefinition, IGenericPara
         }
     }
 
-    private bool AreMethodsCompatible (MethodDefinition method, MethodDefinition candidate)
+    public bool AreMethodsCompatible (MethodDefinition candidate)
     {
-        for (var i = 0; i < method.Parameters.Count; i++)
-            if (method.Parameters[i].ParameterType.FullName != candidate.Parameters[i].ParameterType.FullName)
+		if (Name != candidate.Name || Parameters.Count != candidate.Parameters.Count)
+			return false;
+
+        for (var i = 0; i < Parameters.Count; i++)
+            if (Parameters[i].ParameterType.FullName != candidate.Parameters[i].ParameterType.FullName)
                 return false;
 
         return true;

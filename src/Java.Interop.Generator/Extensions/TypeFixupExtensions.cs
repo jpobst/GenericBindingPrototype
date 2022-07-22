@@ -2,7 +2,7 @@ using System.Xml.Linq;
 using Javil;
 using Xamarin.SourceWriter;
 
-namespace generator2;
+namespace Java.Interop.Generator;
 
 static class TypeFixupExtensions
 {

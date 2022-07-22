@@ -1,9 +1,9 @@
 using Javil;
 using Xamarin.SourceWriter;
 
-namespace generator2;
+namespace Java.Interop.Generator;
 
-internal class BindingsWriter
+public class BindingsWriter
 {
 	private readonly string output_dir;
 

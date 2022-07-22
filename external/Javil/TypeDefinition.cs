@@ -1,4 +1,4 @@
-﻿using Javil.Attributes;
+using Javil.Attributes;
 
 namespace Javil;
 

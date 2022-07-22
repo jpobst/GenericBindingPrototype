@@ -1,4 +1,4 @@
-﻿using Javil.Adapters;
+using Javil.Adapters;
 using Javil.Extensions;
 
 namespace Javil;
@@ -12,13 +12,17 @@ public sealed class ContainerDefinition
 
     public IContainerResolver Resolver { get; }
 
-    public ContainerDefinition (string fileName, IContainerResolver resolver)
-    {
-        FileName = fileName;
-        Resolver = resolver;
-    }
+	public ContainerDefinition (string fileName) : this (fileName, new BaseContainerResolver ())
+	{
+	}
 
-    public static ContainerDefinition ReadContainer (string fileName, ReaderParameters? parameters = null)
+	public ContainerDefinition (string fileName, IContainerResolver resolver)
+	{
+		FileName = fileName;
+		Resolver = resolver;
+	}
+
+	public static ContainerDefinition ReadContainer (string fileName, ReaderParameters? parameters = null)
         => BytecodeReader.Read (fileName, parameters);
 
     public TypeDefinition Resolve (TypeReference type)
@@ -26,9 +30,10 @@ public sealed class ContainerDefinition
         return Resolver.Resolve (type);
     }
 
-    public void AddType (TypeDefinition type)
+    public TypeDefinition AddType (TypeDefinition type)
     {
         types.Add (type.FullNameGenericsErased, type);
+		return type;
     }
 
     public TypeDefinition? FindType (string type)
