@@ -1,10 +1,11 @@
+using System.Diagnostics.Metrics;
 using System.Xml.Linq;
 using Javil;
 using Xamarin.SourceWriter;
 
 namespace Java.Interop.Generator;
 
-static class TypeFixupExtensions
+public static class TypeFixupExtensions
 {
 	public static void SetNamespace (this TypeReference type, string ns)
 	{
@@ -41,6 +42,37 @@ static class TypeFixupExtensions
 		member.CustomData ["explicitInterface"] = iface;
 	}
 
+	public static void SetManagedReturnType (this ICustomDataProvider member, TypeDefinition type)
+	{
+		member.CustomData ["managedReturn"] = type;
+	}
+
+	public static void SetManagedTypeModel (this TypeReference type, TypeWriter model)
+	{
+		type.CustomData ["managedTypeModel"] = model;
+	}
+
+	public static TypeWriter? GetManagedTypeModel (this TypeReference type)
+	{
+		if (type.CustomData.TryGetValue ("managedTypeModel", out var model) && model is TypeWriter tw)
+			return tw;
+
+		return null;
+	}
+
+	public static void SetManagedTypeDefinition (this TypeReference type, ManagedTypeDefinition model)
+	{
+		type.CustomData ["managedTypeDefinition"] = model;
+	}
+
+	public static ManagedTypeDefinition? GetManagedTypeDefinition (this TypeReference type)
+	{
+		if (type.CustomData.TryGetValue ("managedTypeDefinition", out var model) && model is ManagedTypeDefinition tw)
+			return tw;
+
+		return null;
+	}
+
 	public static string GetName (this IMemberDefinition member)
 	{
 		if (member.CustomData.TryGetValue ("managedName", out var obj) && obj is string name)
@@ -60,6 +92,7 @@ static class TypeFixupExtensions
 		return EscapeIdentifier (member.Name);
 	}
 
+	// TODO: This should probably handle managedName
 	public static string? GetExplicitInterface (this IMemberDefinition member)
 	{
 		if (!member.CustomData.TryGetValue ("explicitInterface", out var iface_object))
@@ -69,7 +102,22 @@ static class TypeFixupExtensions
 			return iface_name;
 
 		if (iface_object is TypeDefinition iface)
-			return $"global::{iface.GetNamespace ()}.{iface.Name}"; ;
+			return $"global::{iface.GetNamespace ()}.{iface.GenericNestedName.Replace ('$', '.')}"; ;
+
+		return null;
+	}
+
+	// TODO: This should probably handle managedName
+	public static TypeReference? GetManagedReturnType (this MethodDefinition member)
+	{
+		if (!member.CustomData.TryGetValue ("managedReturn", out var return_object))
+			return member.ReturnType;
+
+		//if (return_object is string return_name)
+		//	return return_name;
+
+		if (return_object is TypeDefinition ret)
+			return ret;
 
 		return null;
 	}

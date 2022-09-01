@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Javil;
+using Xamarin.SourceWriter;
 
 namespace Java.Interop.Generator
 {
@@ -62,6 +63,22 @@ namespace Java.Interop.Generator
 				results.AddRange (iface.Methods.Where (m => !m.IsConstructor));
 
 			return results;
+		}
+
+		/// <summary>
+		/// Returns if class is "visible" (public or protected).
+		/// </summary>
+		public static bool IsVisible (this TypeDefinition type) => type.IsPublic || type.IsProtected;
+
+		public static string? GetNamespace (this TypeWriter type)
+		{
+			if (type is not IManagedTypeModel model)
+				throw new Exception ();
+
+			if (type.ParentType is not null)
+				return type.ParentType.GetNamespace ();
+
+			return model.Namespace?.Name;
 		}
 	}
 }

@@ -3,13 +3,20 @@ using Xamarin.SourceWriter;
 
 namespace Java.Interop.Generator;
 
-class BoundInterface : InterfaceWriter
+class BoundInterface : InterfaceWriter, IManagedTypeModel
 {
+	public TypeDefinition JavaType { get; set; }
 	public GenericInterfaceAlternative? GenericInterfaceAlternative { get; set; }
+	public ManagedNamespaceModel? Namespace { get; set; }
+
+	BoundInterface (TypeDefinition javaType)
+	{
+		JavaType = javaType;
+	}
 
 	public static BoundInterface Create (TypeDefinition type)
 	{
-		var t = new BoundInterface () {
+		var t = new BoundInterface (type) {
 			Name = type.GetName (),
 			IsPublic = true
 		};
@@ -20,11 +27,21 @@ class BoundInterface : InterfaceWriter
 		foreach (var iface in type.ImplementedInterfaces)
 			t.Implements.Add (FormatExtensions.FormatTypeReference (iface.InterfaceType));
 
-		foreach (var field in type.Fields.OfType<FieldDefinition> ().Where (f => f.IsConstant && (f.IsPublic || f.IsProtected)))
-			t.Fields.Add (BoundField.Create (field));
+		if (type.HasGenericParameters)
+			t.GenericInterfaceAlternative = GenericInterfaceAlternative.Create (type);
 
-		foreach (var field in type.Fields.OfType<FieldDefinition> ().Where (f => !f.IsConstant && (f.IsPublic || f.IsProtected)))
-			t.Properties.Add (BoundFieldAsProperty.Create (field));
+		type.SetManagedTypeModel (t);
+
+		return t;
+	}
+
+	public void PopulateMembers ()
+	{
+		foreach (var field in JavaType.Fields.OfType<FieldDefinition> ().Where (f => f.IsConstant && (f.IsPublic || f.IsProtected)))
+			Fields.Add (BoundField.Create (field));
+
+		foreach (var field in JavaType.Fields.OfType<FieldDefinition> ().Where (f => !f.IsConstant && (f.IsPublic || f.IsProtected)))
+			Properties.Add (BoundFieldAsProperty.Create (field));
 
 		// TODO:
 		// Abstract classes must declare all interface methods
@@ -32,18 +49,16 @@ class BoundInterface : InterfaceWriter
 		// Clean up this Where () clause
 		// Default interface methods
 		// Static interface methods
-		foreach (var method in type.Methods.OfType<MethodDefinition> ().Where (f => (f.IsAbstract && !f.IsStatic) && f.Name != "values" && !f.IsBridge && !f.IsConstructor && !f.IsDefaultInterfaceMethod))
-			if (BoundInterfaceMethod.Create (method, type) is MethodWriter m)
-				t.Methods.Add (m);
+		foreach (var method in JavaType.Methods.OfType<MethodDefinition> ().Where (f => (f.IsAbstract && !f.IsStatic) && f.Name != "values" && !f.IsBridge && !f.IsConstructor && !f.IsDefaultInterfaceMethod))
+			if (BoundInterfaceMethod.Create (method, JavaType) is MethodWriter m)
+				Methods.Add (m);
 
 		// Default interface methods
-		foreach (var method in type.Methods.OfType<MethodDefinition> ().Where (f => f.IsDefaultInterfaceMethod && !f.IsBridge))
-			if (BoundMethod.Create (method, type) is MethodWriter m)
-				t.Methods.Add (m);
+		foreach (var method in JavaType.Methods.OfType<MethodDefinition> ().Where (f => f.IsDefaultInterfaceMethod && !f.IsBridge))
+			if (BoundMethod.Create (method, JavaType) is MethodWriter m)
+				Methods.Add (m);
 
-		if (type.HasGenericParameters)
-			t.GenericInterfaceAlternative = GenericInterfaceAlternative.Create (type);
-
-		return t;
+		foreach (var nested in NestedTypes.OfType<IManagedTypeModel> ())
+			nested.PopulateMembers ();
 	}
 }

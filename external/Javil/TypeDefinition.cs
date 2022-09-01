@@ -24,6 +24,8 @@ public class TypeDefinition : TypeReference, IMemberDefinition, IAttributeProvid
         BaseType = baseType;
     }
 
+	public bool IsClass => !IsInterface;
+
     public bool IsInterface { get; set; }
 
     public bool IsStatic { get; set; }

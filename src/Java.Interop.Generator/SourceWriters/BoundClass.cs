@@ -3,13 +3,20 @@ using Xamarin.SourceWriter;
 
 namespace Java.Interop.Generator;
 
-class BoundClass : ClassWriter
+class BoundClass : ClassWriter, IManagedTypeModel
 {
+	public TypeDefinition JavaType { get; set; }
 	public GenericClassAlternative? NonGenericClass { get; set; }
+	public ManagedNamespaceModel? Namespace { get; set; }
+
+	BoundClass (TypeDefinition javaType)
+	{
+		JavaType = javaType;
+	}
 
 	public static BoundClass Create (TypeDefinition type)
 	{
-		var t = new BoundClass () {
+		var t = new BoundClass (type) {
 			Name = type.GetName ()
 		};
 
@@ -35,17 +42,25 @@ class BoundClass : ClassWriter
 		foreach (var iface in type.ImplementedInterfaces)
 			t.Implements.Add (FormatExtensions.FormatTypeReference (iface.InterfaceType));
 
-		foreach (var field in type.Fields.OfType<FieldDefinition> ().Where (f => f.IsConstant && (f.IsPublic || f.IsProtected)))
-			t.Fields.Add (BoundField.Create (field));
-
-		foreach (var field in type.Fields.OfType<FieldDefinition> ().Where (f => !f.IsConstant && (f.IsPublic || f.IsProtected)))
-			t.Properties.Add (BoundFieldAsProperty.Create (field));
-
-		// TODO: Clean up this Where () clause
-		foreach (var method in type.Methods.OfType<MethodDefinition> ().Where (f => (f.IsPublic || f.IsProtected) && f.Name != "values" && !f.IsBridge && !f.IsConstructor))
-			if (BoundMethod.Create (method, type) is MethodWriter m)
-				t.Methods.Add (m);
+		type.SetManagedTypeModel (t);
 
 		return t;
+	}
+
+	public void PopulateMembers ()
+	{
+		foreach (var field in JavaType.Fields.OfType<FieldDefinition> ().Where (f => f.IsConstant && (f.IsPublic || f.IsProtected)))
+			Fields.Add (BoundField.Create (field));
+
+		foreach (var field in JavaType.Fields.OfType<FieldDefinition> ().Where (f => !f.IsConstant && (f.IsPublic || f.IsProtected)))
+			Properties.Add (BoundFieldAsProperty.Create (field));
+
+		// TODO: Clean up this Where () clause
+		foreach (var method in JavaType.Methods.OfType<MethodDefinition> ().Where (f => (f.IsPublic || f.IsProtected) && f.Name != "values" && !f.IsBridge && !f.IsConstructor))
+			if (BoundMethod.Create (method, JavaType) is MethodWriter m)
+				Methods.Add (m);
+
+		foreach (var nested in NestedTypes.OfType<IManagedTypeModel> ())
+			nested.PopulateMembers ();
 	}
 }

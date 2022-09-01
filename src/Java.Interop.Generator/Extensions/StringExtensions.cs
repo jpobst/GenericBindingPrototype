@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace Java.Interop.Generator;
 
@@ -85,4 +86,17 @@ static class StringExtensions
 	}
 
 	public static string Capitalize (this string s) => char.ToUpperInvariant (s [0]) + s.Substring (1);
+
+	public static string Repeat (this string s, int count)
+	{
+		if (count == 0)
+			return s;
+
+		var sb = new StringBuilder ();
+
+		for (var i = 0; i < count; i++)
+			sb.Append (s);
+
+		return sb.ToString ();
+	}
 }

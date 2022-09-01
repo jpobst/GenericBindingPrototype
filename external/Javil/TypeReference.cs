@@ -1,4 +1,4 @@
-﻿using Javil.Extensions;
+using Javil.Extensions;
 
 namespace Javil;
 
@@ -121,7 +121,16 @@ public class TypeReference : MemberReference, IGenericParameterProvider
         }
     }
 
-    public virtual string JniFullName {
+	public virtual string GenericNestedName {
+		get {
+			if (DeclaringType is null)
+				return GenericName;
+
+			return $"{DeclaringType.GenericNestedName}${GenericName}";
+		}
+	}
+
+	public virtual string JniFullName {
         get {
             if (IsPrimitiveType || Name == "*" || Name == "**")
                 return JniName;
@@ -167,4 +176,13 @@ public class TypeReference : MemberReference, IGenericParameterProvider
     {
         return JniFullNameGenericsErased;
     }
+
+	public override string GenericName {
+		get {
+			if (!GenericParameters.Any ())
+				return Name;
+
+			return $"{Name}<{string.Join (", ", GenericParameters.Select (gp => gp.Name))}>";
+		}
+	}
 }

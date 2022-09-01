@@ -13,16 +13,16 @@ class BoundMethod : MethodWriter
 
 		var base_method = method.FindDeclaredBaseMethodOrDefault ();
 		var effective_method = method;
-		var effective_return_type = method.ReturnType;
+		var effective_return_type = method.GetManagedReturnType ();
 
 		if (base_method is not null && !method.IsStatic) {
 			m.IsOverride = true;
 			effective_method = base_method;
 
 			if (method.ReturnType.IsArray && !effective_method.ReturnType.IsArray)
-				effective_return_type = effective_method.ReturnType;
+				effective_return_type = effective_method.GetManagedReturnType ();
 			else if ((method.ReturnType as GenericInstanceType)?.GenericArguments.Any () == true && method.ReturnType.FullName != effective_method.ReturnType.FullName && !((effective_method.ReturnType as GenericInstanceType)?.GenericArguments.Any () == true))
-				effective_return_type = effective_method.ReturnType;
+				effective_return_type = effective_method.GetManagedReturnType ();
 		}
 
 		if (type.IsAbstract && method.IsAbstract && m.IsOverride)
@@ -43,7 +43,13 @@ class BoundMethod : MethodWriter
 		m.IsStatic = method.IsStatic;
 		m.IsAbstract = method.IsAbstract;
 
-		m.ReturnType = new TypeReferenceWriter (FormatExtensions.FormatTypeReference (effective_return_type));
+		if (m.Name == "lowerEntry")
+			Console.WriteLine ();
+		if (effective_return_type?.GetManagedTypeModel () is TypeWriter tw)
+			m.ReturnType = UsePrimitiveTypes (new TypeReferenceWriter (tw.GetNamespace (), tw.NestedGenericName));
+		else
+			m.ReturnType = new TypeReferenceWriter (FormatExtensions.FormatTypeReference (effective_return_type));
+
 		m.ExplicitInterfaceImplementation = method.GetExplicitInterface ();
 
 		if (m.ExplicitInterfaceImplementation.HasValue () && method.IsDefaultInterfaceMethod) {
@@ -59,5 +65,13 @@ class BoundMethod : MethodWriter
 			m.Body.Add ("throw new NotImplementedException ();");
 
 		return m;
+	}
+
+	static TypeReferenceWriter UsePrimitiveTypes (TypeReferenceWriter type)
+	{
+		return type switch {
+			{ Namespace: "Java.Lang", Name: "String" } => new TypeReferenceWriter ("string"),
+			_ => type
+		};
 	}
 }

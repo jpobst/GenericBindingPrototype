@@ -35,7 +35,33 @@ namespace Xamarin.SourceWriter
         public List<string> GenericParameters { get; } = new List<string> ();
 
 		public ObservableCollection<TypeWriter> NestedTypes { get; } = new ObservableCollection<TypeWriter> ();
+		public TypeWriter ParentType { get; private set; }
+		public string NestedName {
+			get {
+				if (ParentType is null)
+					return Name;
 
+				return $"{ParentType.NestedName}.{Name}";
+			}
+		}
+		public string NestedGenericName {
+			get {
+				if (ParentType is null)
+					return GenericName;
+
+				return $"{ParentType.NestedGenericName}.{GenericName}";
+			}
+		}
+		public string GenericName {
+			get {
+				var name = Name;
+
+				if (GenericParameters.Any ())
+					name += $"<{string.Join (", ", GenericParameters)}>";
+
+				return name;
+			}
+		}
 		protected TypeWriter ()
 		{
 			Methods.CollectionChanged += MemberAdded;
@@ -45,6 +71,7 @@ namespace Xamarin.SourceWriter
 			InlineComments.CollectionChanged += MemberAdded;
 			Delegates.CollectionChanged += MemberAdded;
 			NestedTypes.CollectionChanged += MemberAdded;
+			NestedTypes.CollectionChanged += NestedTypeChange;
 		}
 
 		protected void MemberAdded (object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -52,6 +79,18 @@ namespace Xamarin.SourceWriter
 			foreach (var member in e.NewItems.OfType<ISourceWriter> ())
 				if (member.Priority == 0)
 					member.Priority = GetNextPriority ();
+		}
+
+		void NestedTypeChange (object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		{
+			// Keep type's ParentType in sync
+			if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove)
+				foreach (var member in e.NewItems.OfType<TypeWriter> ())
+					member.ParentType = null;
+
+			if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+				foreach (var member in e.NewItems.OfType<TypeWriter> ())
+					member.ParentType = this;
 		}
 
 		public void SetVisibility (string visibility)

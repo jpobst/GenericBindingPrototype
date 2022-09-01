@@ -11,8 +11,4 @@
     <ProjectReference Include="..\..\external\Xamarin.SourceWriter\Xamarin.SourceWriter.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Fixups\ManagedModel\" />
-  </ItemGroup>
-
 </Project>
