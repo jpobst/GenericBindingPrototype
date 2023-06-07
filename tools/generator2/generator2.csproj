@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\external\Javil\Javil.csproj" />
+    <ProjectReference Include="..\..\external\javil\src\Javil\Javil.csproj" />
     <ProjectReference Include="..\..\external\Xamarin.SourceWriter\Xamarin.SourceWriter.csproj" />
   </ItemGroup>
 

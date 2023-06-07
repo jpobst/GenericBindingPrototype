@@ -1,0 +1,3 @@
+[submodule "external/javil"]
+	path = external/javil
+	url = https://github.com/jpobst/javil.git
