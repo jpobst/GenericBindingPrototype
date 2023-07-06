@@ -59,6 +59,13 @@ namespace Xamarin.SourceWriter
 			need_indent = true;
 		}
 
+		public void WriteIndentedLine (string value)
+		{
+			Indent ();
+			WriteLine (value);
+			Unindent ();
+		}
+
 		public void Indent (int count = 1) => indent += count;
 		public void Unindent (int count = 1) => indent -= count;
 

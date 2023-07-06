@@ -24,6 +24,7 @@ namespace Xamarin.SourceWriter
 		public ObservableCollection<MethodWriter> Methods { get; } = new ObservableCollection<MethodWriter> ();
 		public List<string> Comments { get; } = new List<string> ();
 		public List<AttributeWriter> Attributes { get; } = new List<AttributeWriter> ();
+		public List<GenericConstraintModel> GenericConstraints { get; } = new List<GenericConstraintModel> ();
 		public ObservableCollection<EventWriter> Events { get; } = new ObservableCollection<EventWriter> ();
 		public ObservableCollection<FieldWriter> Fields { get; } = new ObservableCollection<FieldWriter> ();
 		public ObservableCollection<PropertyWriter> Properties { get; } = new ObservableCollection<PropertyWriter> ();
@@ -150,6 +151,12 @@ namespace Xamarin.SourceWriter
 			if (Implements.Count > 0)
 				writer.Write (string.Join (", ", Implements) + " ");
 
+			if (GenericConstraints.Any ()) {
+				writer.Write ("where ");
+				writer.Write (string.Join (", ", GenericConstraints.Select (gb => $"{gb.Name} : {gb.ConstraintType}")));
+			}
+
+			writer.WriteLine ();
 			writer.WriteLine ("{");
 			writer.Indent ();
 		}

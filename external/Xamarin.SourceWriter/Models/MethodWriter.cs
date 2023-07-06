@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Xamarin.SourceWriter
 {
@@ -27,9 +28,10 @@ namespace Xamarin.SourceWriter
 		public bool IsAbstract { get; set; }
 		public int Priority { get; set; }
 		public bool IsDeclaration { get; set; }
-        public List<string> GenericParameters { get; } = new List<string> ();
+		public List<string> GenericParameters { get; } = new List<string> ();
+		public List<GenericConstraintModel> GenericConstraints { get; } = new List<GenericConstraintModel> ();
 
-        public string ExplicitInterfaceImplementation { get; set; }
+		public string ExplicitInterfaceImplementation { get; set; }
 		public bool NewFirst { get; set; }           // TODO: Temporary to match unit tests
 
 		public void SetVisibility (string visibility)
@@ -124,6 +126,11 @@ namespace Xamarin.SourceWriter
 
 			writer.Write (")");
 
+			if (GenericConstraints.Any ()) {
+				writer.Write (" where ");
+				writer.Write (FormatGenericConstraints ());
+			}
+
 			if (IsAbstract || IsDeclaration) {
 				writer.WriteLine (";");
 				return;
@@ -165,5 +172,18 @@ namespace Xamarin.SourceWriter
 		}
 
 		protected virtual void WriteConstructorBaseCall (CodeWriter writer) { }
+
+		string FormatGenericConstraints ()
+		{
+			var sb = new StringBuilder ();
+
+			foreach (var group in GenericConstraints.GroupBy (p => p.Name)) {
+				sb.Append ($"{group.Key} : ");
+				sb.Append (string.Join (", ", group.Select (p => p.ConstraintType)));
+				sb.Append (" ");
+			}
+
+			return sb.ToString ();
+		}
 	}
 }

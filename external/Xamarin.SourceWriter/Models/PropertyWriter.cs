@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Xamarin.SourceWriter
 {
@@ -34,6 +35,7 @@ namespace Xamarin.SourceWriter
 		public int Priority { get; set; }
 		public string ExplicitInterfaceImplementation { get; set; }
 		public Visibility AutoSetterVisibility { get; set; }
+		public bool UseGetterExpressionBody { get; set; }
 
 		public void SetVisibility (string visibility)
 		{
@@ -138,6 +140,11 @@ namespace Xamarin.SourceWriter
 		{
 			if (IsAutoProperty || IsAbstract) {
 				WriteAutomaticPropertyBody (writer);
+				return;
+			}
+
+			if (UseGetterExpressionBody && !HasSet) {
+				writer.WriteLine ($"=> {GetBody.FirstOrDefault ()}");
 				return;
 			}
 
