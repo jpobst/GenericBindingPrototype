@@ -12,7 +12,7 @@ static class TypeFixupExtensions
 
 	public static string GetNamespace (this TypeReference type)
 	{
-		if (type.CustomData.TryGetValue ("managedNamespace", out var ns))
+		if (type.CustomData.TryGetValue ("managedNamespace", out var data) && data is string ns)
 			return ns;
 
 		ns = type.Namespace;
@@ -32,7 +32,7 @@ static class TypeFixupExtensions
 
 	public static string GetName (this IMemberDefinition member)
 	{
-		if (member.CustomData.TryGetValue ("managedName", out var name))
+		if (member.CustomData.TryGetValue ("managedName", out var data) && data is string name)
 			return name;
 
 		if (member is MethodDefinition method)
@@ -43,10 +43,45 @@ static class TypeFixupExtensions
 
 	public static string GetName (this ParameterDefinition member)
 	{
-		if (member.CustomData.TryGetValue ("managedName", out var name))
+		if (member.CustomData.TryGetValue ("managedName", out var data) && data is string name)
 			return name;
 
 		return EscapeIdentifier (member.Name);
+	}
+
+	public static void SetExplicitInterface (this MethodDefinition method, ImplementedInterface iface)
+	{
+		method.CustomData ["explicitInterface"] = iface;
+	}
+
+	public static ImplementedInterface? GetExplicitInterface (this MethodDefinition method)
+	{
+		if (method.CustomData.TryGetValue ("explicitInterface", out var data) && data is ImplementedInterface tr)
+			return tr;
+
+		return null;
+	}
+
+	public static void SetCovariantInterfaceMethod (this MethodDefinition method, ImplementedInterface iface, MethodDefinition interfaceMethod)
+	{
+		if (!method.CustomData.TryGetValue ("covariantInterfaceMethods", out var list)) {
+			list = new List<(ImplementedInterface, MethodDefinition)> ();
+			method.CustomData.Add ("covariantInterfaceMethods", list);
+		}
+
+		var typed_list = (List<(ImplementedInterface, MethodDefinition)>) list;
+
+		// Don't allow duplicates
+		if (!typed_list.Any (m => m.Item2.GetDescriptor () == interfaceMethod.GetDescriptor ()))
+			typed_list.Add ((iface, interfaceMethod));
+	}
+
+	public static IEnumerable<(ImplementedInterface, MethodDefinition)> GetCovariantInterfaceMethod (this MethodDefinition method)
+	{
+		if (method.CustomData.TryGetValue ("covariantInterfaceMethods", out var data) && data is List<(ImplementedInterface, MethodDefinition)> list)
+			return list;
+
+		return Array.Empty<(ImplementedInterface, MethodDefinition)> ();
 	}
 
 	private static string EscapeMethodName (MethodDefinition method)
@@ -59,7 +94,7 @@ static class TypeFixupExtensions
 		return method.GenericName;
 	}
 
-	private static string EscapeIdentifier (string name)
+	public static string EscapeIdentifier (string name)
 	{
 		return CSharpFacts.IsReservedKeyword (name) ? "@" + name : name;
 	}
@@ -111,6 +146,59 @@ static class TypeFixupExtensions
 		if (type.Fields.FirstOrDefault (p => p.Name == fieldName) is FieldDefinition p) {
 			p.SetName (value);
 			return true;
+		}
+
+		return false;
+	}
+
+	public static bool HideType (this ContainerDefinition container, string typeName)
+	{
+		var type = container.FindType (typeName);
+
+		if (type is null)
+			return false;
+
+		type.IsPublic = false;
+		type.IsProtected = false;
+		type.IsPrivate = true;
+
+		return false;
+	}
+
+	public static IEnumerable<TypeReference> GetReferencedTypes (this TypeReference type)
+	{
+		if (type is GenericInstanceType gt)
+			foreach (var t in gt.GenericArguments)
+				foreach (var rt in t.GetReferencedTypes ())
+					yield return rt;
+
+		if (type is not WildcardType && type.Name != "**")
+			yield return type;
+	}
+
+	public static void AddMappingToImplementedInterface (this GenericParameterMapping mapping, TypeDefinition type, ImplementedInterface iface)
+	{
+		var stack = new Stack<TypeReference> ();
+
+		if (AddMappingToImplementedInterfaceCore (stack, type, iface)) {
+			foreach (var tr in stack.Reverse ())
+				mapping.AddMappingFromTypeReference (tr);
+		}
+	}
+
+	static bool AddMappingToImplementedInterfaceCore (Stack<TypeReference> mapping, TypeDefinition type, ImplementedInterface iface)
+	{
+		// If we found what we're looking for, return
+		if (type.FullNameGenericsErased == iface.InterfaceType.FullNameGenericsErased)
+			return true;
+
+		foreach (var i in type.ImplementedInterfaces) {
+			mapping.Push (i.InterfaceType);
+
+			if (AddMappingToImplementedInterfaceCore (mapping, i.InterfaceType.Resolve ()!, iface))
+				return true;
+
+			mapping.Pop ();
 		}
 
 		return false;

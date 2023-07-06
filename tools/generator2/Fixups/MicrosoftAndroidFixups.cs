@@ -22,11 +22,11 @@ static class MicrosoftAndroidFixups
 		type.SetMethodReturnType ("JarFile", "stream", "Java.Util.Stream.Stream<Java.Util.Zip.ZipEntry>");
 
 		// Missed overrides
-		type.SetMethodIsOverride ("AbsSpinner", "setAdapter");
-		type.SetMethodIsOverride ("AbsListView", "setAdapter");
-		type.SetMethodIsOverride ("AdapterViewAnimator", "setAdapter");
-		type.SetMethodIsOverride ("CountedCompleter", "setRawResult");
-		type.SetMethodIsOverride ("RecursiveAction", "setRawResult");
+		//type.SetMethodIsOverride ("AbsSpinner", "setAdapter");
+		//type.SetMethodIsOverride ("AbsListView", "setAdapter");
+		//type.SetMethodIsOverride ("AdapterViewAnimator", "setAdapter");
+		//type.SetMethodIsOverride ("CountedCompleter", "setRawResult");
+		//type.SetMethodIsOverride ("RecursiveAction", "setRawResult");
 
 		foreach (var nested in type.NestedTypes)
 			ApplyTypeFixups (nested);

@@ -43,6 +43,32 @@ class BoundMethod : MethodWriter
 		m.IsStatic = method.IsStatic;
 		m.IsAbstract = method.IsAbstract;
 
+		// Don't emit these modifiers for DIM
+		if (type.IsInterface && method.IsDefaultInterfaceMethod ()) {
+			m.IsPublic = false;
+			m.IsProtected = false;
+			m.IsVirtual = false;
+			m.IsAbstract = false;
+		}
+
+		if (!m.IsOverride && method.HasGenericParameters)
+			foreach (var gp in method.GenericParameters) {
+				if (gp.InterfaceBounds is not null)
+					foreach (var tr in gp.InterfaceBounds)
+						m.GenericConstraints.Add (new GenericConstraintModel (gp.Name, FormatExtensions.FormatTypeReference (tr)));
+			}
+
+		if (method.GetExplicitInterface () is ImplementedInterface explicit_interface) {
+			var mapping = new GenericParameterMapping ();
+
+			if (type.ImplementedInterfaces.Any (ii => ii.InterfaceType.FullName == explicit_interface.InterfaceType.FullName))
+				mapping.AddMappingFromTypeReference (explicit_interface.InterfaceType);
+			else
+				mapping.AddMappingToImplementedInterface (type, explicit_interface);
+
+			m.ExplicitInterfaceImplementation = FormatExtensions.FormatTypeReference (mapping.GetMappedReference (explicit_interface.InterfaceType));
+		}
+
 		m.ReturnType = new TypeReferenceWriter (FormatExtensions.FormatTypeReference (effective_return_type));
 
 		if (method.HasParameters)
@@ -50,7 +76,7 @@ class BoundMethod : MethodWriter
 				m.Parameters.Add (new MethodParameterWriter (p.GetName (), new TypeReferenceWriter (FormatExtensions.FormatTypeReference (p.ParameterType))));
 
 		if (!m.IsAbstract)
-			m.Body.Add ("throw new NotImplementedException ();");
+			m.Body.Add ("throw new global::System.NotImplementedException ();");
 
 		return m;
 	}

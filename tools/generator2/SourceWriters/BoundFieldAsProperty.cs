@@ -24,7 +24,7 @@ class BoundFieldAsProperty : PropertyWriter
 		p.HasGet = true;
 		p.HasSet = true;
 
-		p.GetBody.Add ("throw new NotImplementedException ();");
+		p.GetBody.Add ("throw new global::System.NotImplementedException ();");
 
 		return p;
 	}
