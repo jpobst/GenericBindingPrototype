@@ -1,6 +1,7 @@
 using System;
 using System.CommandLine;
 using System.Diagnostics;
+using Java.Interop.Tools.BindingsGenerator;
 using Javil;
 
 namespace generator2;
