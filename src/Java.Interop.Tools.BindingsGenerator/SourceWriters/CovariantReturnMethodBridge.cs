@@ -5,7 +5,7 @@ namespace Java.Interop.Tools.BindingsGenerator;
 
 class CovariantReturnMethodBridge
 {
-	public static BoundMethod? Create (MethodDefinition method, ImplementedInterface iface, MethodDefinition methodDeclaration, TypeDefinition type)
+	public static BoundMethod? Create (MethodDefinition method, ImplementedInterface iface, MethodDefinition methodDeclaration, TypeDefinition type, GeneratorSettings settings)
 	{
 		var mapping = new GenericParameterMapping ();
 
@@ -14,11 +14,11 @@ class CovariantReturnMethodBridge
 		else
 			mapping.AddMappingToImplementedInterface (type, iface);
 
-		var return_type = FormatExtensions.FormatTypeReference (mapping.GetMappedReference (methodDeclaration.ReturnType), true);
+		var return_type = FormatExtensions.FormatTypeReference (mapping.GetMappedReference (methodDeclaration.ReturnType), settings, true);
 
 		var m = new BoundMethod {
-			Name = method.GetName (),
-			ExplicitInterfaceImplementation = FormatExtensions.FormatTypeReference (mapping.GetMappedReference (iface.InterfaceType)),
+			Name = method.GetManagedGenericName (settings),
+			ExplicitInterfaceImplementation = FormatExtensions.FormatTypeReference (mapping.GetMappedReference (iface.InterfaceType), settings),
 			ReturnType = new TypeReferenceWriter (return_type)
 		};
 
@@ -26,7 +26,7 @@ class CovariantReturnMethodBridge
 
 		if (method.HasParameters)
 			foreach (var p in method.Parameters)
-				m.Parameters.Add (new MethodParameterWriter (p.GetName (), new TypeReferenceWriter (FormatExtensions.FormatTypeReference (p.ParameterType))));
+				m.Parameters.Add (new MethodParameterWriter (p.GetManagedName (settings), new TypeReferenceWriter (FormatExtensions.FormatTypeReference (p.ParameterType, settings))));
 
 		m.Body.Add ($"return ({return_type})this.{m.Name} ({string.Join (", ", m.Parameters.Select (p => p.Name))});");
 

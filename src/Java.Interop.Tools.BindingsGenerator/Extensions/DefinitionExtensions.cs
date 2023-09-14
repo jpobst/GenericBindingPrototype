@@ -24,9 +24,11 @@ public static class DefinitionExtensions
 
 	public static bool ShouldBindMethodAsConstructor (this MethodDefinition method) => method.IsPublicApi () && !method.IsBridge && method.IsConstructor;
 
-	public static MethodDefinition Clone (this MethodDefinition method, TypeDefinition declaringType)
+	public static MethodDefinition Clone (this MethodDefinition method, TypeDefinition declaringType, GenericParameterMapping? mapping = null)
 	{
-		var m = new MethodDefinition (method.Name, method.ReturnType, declaringType) {
+		mapping ??= GenericParameterMapping.Empty;
+
+		var m = new MethodDefinition (method.Name, mapping.GetMappedReference (method.ReturnType), declaringType) {
 			IsPublic = method.IsPublic,
 			IsPrivate = method.IsPrivate,
 			IsProtected = method.IsProtected,
@@ -54,7 +56,7 @@ public static class DefinitionExtensions
 
 		if (method.HasParameters)
 			foreach (var p in method.Parameters)
-				m.Parameters.Add (p);
+				m.Parameters.Add (p.Clone (mapping));
 
 		return m;
 	}

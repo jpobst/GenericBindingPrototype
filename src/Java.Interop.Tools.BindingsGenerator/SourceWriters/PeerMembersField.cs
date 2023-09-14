@@ -18,10 +18,10 @@ public class PeerMembersField : FieldWriter
 		Value = $"new JniPeerMembers (\"{rawJniType}\", typeof ({declaringType}){(isInterface ? ", isInterface: true" : string.Empty)})";
 	}
 
-	public static PeerMembersField Create (TypeDefinition type)
+	public static PeerMembersField Create (TypeDefinition type, GeneratorSettings settings)
 	{
 		// TODO: Handle generics correctly
-		var t = type.HasGenericParameters ? "Java.Lang.Object" : type.GetName ();
+		var t = type.HasGenericParameters ? "Java.Lang.Object" : type.GetManagedName (settings);
 		return new PeerMembersField (type.FullNameGenericsErased.Replace ('.', '/'), t, type.IsInterface);
 	}
 }

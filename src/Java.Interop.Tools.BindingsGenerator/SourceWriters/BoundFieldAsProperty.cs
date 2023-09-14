@@ -5,10 +5,10 @@ namespace Java.Interop.Tools.BindingsGenerator;
 
 class BoundFieldAsProperty : PropertyWriter
 {
-	public static BoundFieldAsProperty Create (FieldDefinition field)
+	public static BoundFieldAsProperty Create (FieldDefinition field, GeneratorSettings settings)
 	{
 		var p = new BoundFieldAsProperty {
-			Name = field.GetName ()
+			Name = field.GetManagedName (settings)
 		};
 
 		if (field.IsPublic)
@@ -19,7 +19,7 @@ class BoundFieldAsProperty : PropertyWriter
 
 		p.IsStatic = field.IsStatic && !field.IsConstant;
 
-		p.PropertyType = new TypeReferenceWriter (FormatExtensions.FormatTypeReference (field.FieldType));
+		p.PropertyType = new TypeReferenceWriter (FormatExtensions.FormatTypeReference (field.FieldType, settings));
 
 		p.HasGet = true;
 		p.HasSet = true;

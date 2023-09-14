@@ -5,10 +5,10 @@ namespace Java.Interop.Tools.BindingsGenerator;
 
 class GenericInterfaceAlternative : InterfaceWriter
 {
-	public static GenericInterfaceAlternative Create (TypeDefinition type)
+	public static GenericInterfaceAlternative Create (TypeDefinition type, GeneratorSettings settings)
 	{
 		var t = new GenericInterfaceAlternative {
-			Name = type.GetName (),
+			Name = type.GetManagedName (settings),
 			IsPublic = true
 		};
 

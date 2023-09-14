@@ -32,20 +32,13 @@ public class Program
 		if (Directory.Exists (outputDir))
 			Directory.Delete (outputDir, true);
 
-		Directory.CreateDirectory (outputDir);
+		var settings = new GeneratorSettings {
+			InputFile = jar,
+			OutputDirectory = outputDir,
+			GenerateStubsOnly = true
+		};
 
-		var sw = Stopwatch.StartNew ();
-
-		// Read the jar
-		var container = ContainerDefinition.ReadContainer (jar);
-
-		Console.WriteLine ($"Parse: {sw.ElapsedMilliseconds}ms");
-		sw.Restart ();
-
-		// Generate the binding
-		var pw = new BindingsWriter (outputDir);
-		pw.WriteProject (container);
-
-		Console.WriteLine ($"Generate: {sw.ElapsedMilliseconds}ms");
+		var generator = new Generator (settings);
+		generator.Generate ();
 	}
 }

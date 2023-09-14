@@ -16,7 +16,7 @@ static class TypeVisibilityFixup
 
 	private static void FixVisibleType (TypeDefinition type)
 	{
-		if (!(type.IsPublic || type.IsProtected))
+		if (!type.IsPublicApi ())
 			return;
 
 		//var base_type = type.BaseType?.Resolve ();

@@ -14,21 +14,15 @@ static class MicrosoftAndroidFixups
 		container.RenameField ("java.util.Calendar", "isSet", "isSetField");
 	}
 
-	public static void ApplyTypeFixups (TypeWriter type)
+	public static void ApplyTypeFixups (IEnumerable<TypeWriter> types)
 	{
-		// Unsupported covariant return types
-		type.SetMethodReturnType ("Constructor", "getDeclaringClass", "Java.Lang.Class<Java.Lang.Object>");
-		type.SetMethodReturnType ("JarFile", "entries", "Java.Util.Enumeration<Java.Util.Zip.ZipEntry>");
-		type.SetMethodReturnType ("JarFile", "stream", "Java.Util.Stream.Stream<Java.Util.Zip.ZipEntry>");
+		foreach (var type in types) {
+			// Unsupported covariant return types
+			type.SetMethodReturnType ("Constructor", "getDeclaringClass", "Java.Lang.Class<Java.Lang.Object>");
+			type.SetMethodReturnType ("JarFile", "entries", "Java.Util.IEnumeration<Java.Util.Zip.ZipEntry>");
+			type.SetMethodReturnType ("JarFile", "stream", "Java.Util.Stream.IStream<Java.Util.Zip.ZipEntry>");
 
-		// Missed overrides
-		//type.SetMethodIsOverride ("AbsSpinner", "setAdapter");
-		//type.SetMethodIsOverride ("AbsListView", "setAdapter");
-		//type.SetMethodIsOverride ("AdapterViewAnimator", "setAdapter");
-		//type.SetMethodIsOverride ("CountedCompleter", "setRawResult");
-		//type.SetMethodIsOverride ("RecursiveAction", "setRawResult");
-
-		foreach (var nested in type.NestedTypes)
-			ApplyTypeFixups (nested);
+			ApplyTypeFixups (type.NestedTypes);
+		}
 	}
 }

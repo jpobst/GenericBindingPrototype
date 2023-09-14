@@ -86,12 +86,15 @@ static class FormatExtensions
 	}
 
 	[return: NotNullIfNotNull (nameof (type))]
-	public static string? FormatTypeReference (TypeReference? type, bool fixNestedGenerics = false, bool isDeclaringType = false)
+	public static string? FormatTypeReference (TypeReference? type, GeneratorSettings settings, bool fixNestedGenerics = false, bool isDeclaringType = false)
 	{
 		if (type is null)
 			return null;
 
 		var name = type.Name;
+
+		if (type.TryResolve (out var resolved) && !resolved.IsPrimitive)
+			name = resolved.GetManagedName (settings) + (type.IsArray ? "[]" : "");
 
 		// Handle more arrays?
 		switch (type.FullName) {
@@ -114,15 +117,13 @@ static class FormatExtensions
 
 		if (type.HasGenericParameters) {
 			name += "<";
-			name += string.Join (", ", type.GenericParameters.Select (gp => fixNestedGenerics ? "global::Java.Lang.Object" : FormatTypeReference (gp)));
+			name += string.Join (", ", type.GenericParameters.Select (gp => fixNestedGenerics ? "global::Java.Lang.Object" : FormatTypeReference (gp, settings)));
 			name += ">";
 		}
 
-		var resolved = type.Resolve ();
-
 		if (type is GenericInstanceType git && git.GenericArguments.Any ()) {
 			name += "<";
-			name += string.Join (", ", git.GenericArguments.Select (gp => FormatGenericArgument (resolved, gp)));
+			name += string.Join (", ", git.GenericArguments.Select (gp => FormatGenericArgument (resolved, gp, settings)));
 			name += ">";
 		}
 
@@ -134,15 +135,13 @@ static class FormatExtensions
 			if (is_array)
 				name = name.Substring (0, name.Length - 2);
 
-			//var resolved = type.Resolve ();
-
 			if (resolved != null && resolved.HasGenericParameters) {
 				name += "<";
 
 				var objs = new List<string> ();
 
 				foreach (var gp in resolved.GenericParameters)
-					objs.Add (FormatExtensions.FormatTypeReference (gp.InterfaceBounds?.FirstOrDefault ()) ?? "global::Java.Lang.Object");
+					objs.Add (FormatExtensions.FormatTypeReference (gp.InterfaceBounds?.FirstOrDefault (), settings) ?? "global::Java.Lang.Object");
 				//for (var i = 0; i < resolved.GenericParameters.Count; i++)
 				//	objs.Add ("global::Java.Lang.Object");
 
@@ -155,25 +154,39 @@ static class FormatExtensions
 		}
 
 		if (type.DeclaringType is not null)
-			return FormatTypeReference (type.DeclaringType, fixNestedGenerics, true) + "." + name;
+			return FormatTypeReference (type.DeclaringType, settings, fixNestedGenerics, true) + "." + name;
 
-		if (type.Namespace.HasValue ())
-			return $"global::{type.GetNamespace ()}.{name}";
+		if (resolved?.Namespace is string ns && ns.HasValue ())
+			return $"global::{resolved.GetManagedNamespace (settings)}.{name}";
 
 		return name;
 	}
 
-	static string FormatGenericArgument (TypeDefinition? type, TypeReference ga)
+	static string FormatGenericArgument (TypeDefinition? type, TypeReference ga, GeneratorSettings settings)
 	{
 		if (ga.FullName != "?")
-			return FormatTypeReference (ga);
+			return FormatTypeReference (ga, settings);
 
 		// Handle a parameter like android.widget.AdapterView<?>
 		// where the AdapterView type is defined with a generic constraint:
 		// android.widget.AdapterView<T extends android.widget.Adapter>
 		if (type?.GenericParameters.FirstOrDefault ()?.InterfaceBounds?.FirstOrDefault () is TypeReference tr)
-			return FormatTypeReference (tr);
+			return FormatTypeReference (tr, settings);
 
 		return "global::Java.Lang.Object";
+	}
+
+	public static string FormatGenericArguments (this MethodDefinition method)
+	{
+		if (!method.HasGenericParameters)
+			return string.Empty;
+
+		var sb = new StringBuilder ();
+
+		sb.Append ('<');
+		sb.Append (string.Join (", ", method.GenericParameters.Select (a => a.FullName)));
+		sb.Append ('>');
+
+		return sb.ToString ();
 	}
 }

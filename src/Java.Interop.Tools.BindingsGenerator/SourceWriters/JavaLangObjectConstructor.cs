@@ -5,9 +5,9 @@ namespace Java.Interop.Tools.BindingsGenerator;
 
 public class JavaLangObjectConstructor : ConstructorWriter
 {
-	public JavaLangObjectConstructor (TypeDefinition klass)
+	public JavaLangObjectConstructor (TypeDefinition klass, GeneratorSettings settings)
 	{
-		Name = klass.GetName ();
+		Name = klass.GetManagedName (settings);
 
 		if (klass.IsFinal)
 			IsInternal = true;

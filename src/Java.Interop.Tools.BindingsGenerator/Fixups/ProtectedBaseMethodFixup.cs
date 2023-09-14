@@ -6,25 +6,25 @@ namespace Java.Interop.Tools.BindingsGenerator;
 // C# does not, so we mark the base method as public..
 static class ProtectedBaseMethodFixup
 {
-	public static void Run (ContainerDefinition container)
+	public static void Run (ContainerDefinition container, GeneratorSettings settings)
 	{
 		foreach (var type in container.Types)
-			FixType (type);
+			FixType (type, settings);
 	}
 
-	static void FixType (TypeDefinition type)
+	static void FixType (TypeDefinition type, GeneratorSettings settings)
 	{
-		if (!(type.IsPublic || type.IsProtected))
+		if (!type.IsPublicApi ())
 			return;
 
 		foreach (var method in type.Methods)
-			FixMethod (method);
+			FixMethod (method, settings);
 
 		foreach (var nested in type.NestedTypes)
-			FixType (nested);
+			FixType (nested, settings);
 	}
 
-	static void FixMethod (MethodDefinition method)
+	static void FixMethod (MethodDefinition method, GeneratorSettings settings)
 	{
 		if (!method.IsPublic)
 			return;
@@ -38,5 +38,7 @@ static class ProtectedBaseMethodFixup
 			base_method.IsPublic = true;
 			base_method.IsProtected = false;
 		}
+
+		method.SetManagedName (base_method.GetManagedName (settings));
 	}
 }

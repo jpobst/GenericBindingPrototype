@@ -5,10 +5,10 @@ namespace Java.Interop.Tools.BindingsGenerator;
 
 class GenericClassAlternative : ClassWriter
 {
-	public static GenericClassAlternative Create (TypeDefinition type)
+	public static GenericClassAlternative Create (TypeDefinition type, GeneratorSettings settings)
 	{
 		var t = new GenericClassAlternative {
-			Name = type.GetName (),
+			Name = type.GetManagedName (settings),
 			IsAbstract = true
 		};
 

@@ -5,98 +5,45 @@ namespace Java.Interop.Tools.BindingsGenerator;
 
 static class TypeFixupExtensions
 {
-	public static void SetNamespace (this TypeReference type, string ns)
-	{
-		type.CustomData ["managedNamespace"] = ns;
-	}
-
-	public static string GetNamespace (this TypeReference type)
-	{
-		if (type.CustomData.TryGetValue ("managedNamespace", out var data) && data is string ns)
-			return ns;
-
-		ns = type.Namespace;
-
-		if (ns == "java.lang.module")
-			ns = "Java.Lang.Modules";
-		if (ns == "sun.text.normalizer")
-			ns = "Sun.Text.Normalizers";
-
-		return string.Join ('.', ns.Split ('.').Select (s => s.Capitalize ()));
-	}
-
-	public static void SetName (this ICustomDataProvider member, string name)
-	{
-		member.CustomData ["managedName"] = name;
-	}
-
-	public static string GetName (this IMemberDefinition member)
-	{
-		if (member.CustomData.TryGetValue ("managedName", out var data) && data is string name)
-			return name;
-
-		if (member is MethodDefinition method)
-			return EscapeMethodName (method);
-
-		return EscapeIdentifier (member.Name);
-	}
-
-	public static string GetName (this ParameterDefinition member)
-	{
-		if (member.CustomData.TryGetValue ("managedName", out var data) && data is string name)
-			return name;
-
-		return EscapeIdentifier (member.Name);
-	}
-
-	public static void SetExplicitInterface (this MethodDefinition method, ImplementedInterface iface)
-	{
-		method.CustomData ["explicitInterface"] = iface;
-	}
-
-	public static ImplementedInterface? GetExplicitInterface (this MethodDefinition method)
-	{
-		if (method.CustomData.TryGetValue ("explicitInterface", out var data) && data is ImplementedInterface tr)
-			return tr;
-
-		return null;
-	}
-
-	public static void SetCovariantInterfaceMethod (this MethodDefinition method, ImplementedInterface iface, MethodDefinition interfaceMethod)
-	{
-		if (!method.CustomData.TryGetValue ("covariantInterfaceMethods", out var list)) {
-			list = new List<(ImplementedInterface, MethodDefinition)> ();
-			method.CustomData.Add ("covariantInterfaceMethods", list);
-		}
-
-		var typed_list = (List<(ImplementedInterface, MethodDefinition)>) list;
-
-		// Don't allow duplicates
-		if (!typed_list.Any (m => m.Item2.GetDescriptor () == interfaceMethod.GetDescriptor ()))
-			typed_list.Add ((iface, interfaceMethod));
-	}
-
-	public static IEnumerable<(ImplementedInterface, MethodDefinition)> GetCovariantInterfaceMethod (this MethodDefinition method)
-	{
-		if (method.CustomData.TryGetValue ("covariantInterfaceMethods", out var data) && data is List<(ImplementedInterface, MethodDefinition)> list)
-			return list;
-
-		return Array.Empty<(ImplementedInterface, MethodDefinition)> ();
-	}
-
-	private static string EscapeMethodName (MethodDefinition method)
+	internal static string EscapeMethodName (MethodDefinition method, GeneratorSettings settings)
 	{
 		// We need to ensure with escape generic names that are keywords
 		// if generic parameters are removed, like "void lock<T> (...)"
-		if (EscapeIdentifier (method.Name).StartsWith ('@'))
-			return "@" + method.GenericName;
+		if (CSharpFacts.IsReservedKeyword (method.GetCapitalizedMethodName (settings)))
+			return "@" + method.GetCapitalizedMethodName (settings);
 
-		return method.GenericName;
+		return method.GetCapitalizedMethodName (settings);
+	}
+
+	internal static string EscapeMethodGenericName (MethodDefinition method, GeneratorSettings settings)
+	{
+		// We need to ensure with escape generic names that are keywords
+		// if generic parameters are removed, like "void lock<T> (...)"
+		if (CSharpFacts.IsReservedKeyword (method.GetCapitalizedMethodName (settings)))
+			return "@" + method.GetCapitalizedMethodGenericName (settings);
+
+		return method.GetCapitalizedMethodGenericName (settings);
 	}
 
 	public static string EscapeIdentifier (string name)
 	{
 		return CSharpFacts.IsReservedKeyword (name) ? "@" + name : name;
+	}
+
+	public static string GetCapitalizedMethodName (this MethodDefinition method, GeneratorSettings settings)
+	{
+		return settings.MethodCapitalizationStrategy switch {
+			MethodCapitalizationStrategy.PascalCase => method.Name.Capitalize (),
+			_ => method.Name
+		};
+	}
+
+	public static string GetCapitalizedMethodGenericName (this MethodDefinition method, GeneratorSettings settings)
+	{
+		return settings.MethodCapitalizationStrategy switch {
+			MethodCapitalizationStrategy.PascalCase => method.GenericName.Capitalize (),
+			_ => method.GenericName
+		};
 	}
 
 	public static void SetMethodIsOverride (this TypeWriter type, string typeName, string method)
@@ -144,9 +91,21 @@ static class TypeFixupExtensions
 			return false;
 
 		if (type.Fields.FirstOrDefault (p => p.Name == fieldName) is FieldDefinition p) {
-			p.SetName (value);
+			p.SetManagedName (value, true);
 			return true;
 		}
+
+		return false;
+	}
+
+	public static bool RenameType (this ContainerDefinition container, string typeName, string newName)
+	{
+		var type = container.FindType (typeName);
+
+		if (type is null)
+			return false;
+
+		type.SetManagedName (newName);
 
 		return false;
 	}

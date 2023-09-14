@@ -5,10 +5,10 @@ namespace Java.Interop.Tools.BindingsGenerator;
 
 class BoundInterfaceMethodDeclaration : MethodWriter
 {
-	public static BoundInterfaceMethodDeclaration? Create (MethodDefinition method, TypeDefinition type)
+	public static BoundInterfaceMethodDeclaration? Create (MethodDefinition method, TypeDefinition type, GeneratorSettings settings)
 	{
 		var m = new BoundInterfaceMethodDeclaration {
-			Name = method.GetName (),
+			Name = method.GetManagedGenericName (settings),
 			IsDeclaration = true
 		};
 
@@ -44,17 +44,17 @@ class BoundInterfaceMethodDeclaration : MethodWriter
 		//m.IsStatic = method.IsStatic;
 		//m.IsAbstract = method.IsAbstract;
 
-		m.ReturnType = new TypeReferenceWriter (FormatExtensions.FormatTypeReference (effective_return_type));
+		m.ReturnType = new TypeReferenceWriter (FormatExtensions.FormatTypeReference (effective_return_type, settings));
 
 		if (method.HasParameters)
 			foreach (var p in method.Parameters)
-				m.Parameters.Add (new MethodParameterWriter (p.GetName (), new TypeReferenceWriter (FormatExtensions.FormatTypeReference (p.ParameterType))));
+				m.Parameters.Add (new MethodParameterWriter (p.GetManagedName (settings), new TypeReferenceWriter (FormatExtensions.FormatTypeReference (p.ParameterType, settings))));
 
 		if (method.HasGenericParameters)
 			foreach (var gp in method.GenericParameters) {
 				if (gp.InterfaceBounds is not null)
 					foreach (var tr in gp.InterfaceBounds)
-						m.GenericConstraints.Add (new GenericConstraintModel (gp.Name, FormatExtensions.FormatTypeReference (tr)));
+						m.GenericConstraints.Add (new GenericConstraintModel (gp.Name, FormatExtensions.FormatTypeReference (tr, settings)));
 			}
 
 		//if (!m.IsAbstract)

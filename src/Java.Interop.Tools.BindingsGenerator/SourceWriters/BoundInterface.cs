@@ -5,10 +5,11 @@ namespace Java.Interop.Tools.BindingsGenerator;
 
 class BoundInterface : InterfaceWriter
 {
-	public static BoundInterface Create (TypeDefinition type)
+	public static BoundInterface Create (TypeDefinition type, GeneratorSettings settings)
 	{
 		var t = new BoundInterface () {
-			Name = type.GetName (),
+			Namespace = type.GetManagedNamespace (settings),
+			Name = type.GetManagedName (settings),
 			IsPublic = true
 		};
 
@@ -16,22 +17,20 @@ class BoundInterface : InterfaceWriter
 			t.GenericParameters.Add (tp.Name);
 
 		foreach (var iface in type.ImplementedInterfaces)
-			t.Implements.Add (FormatExtensions.FormatTypeReference (iface.InterfaceType));
+			t.Implements.Add (FormatExtensions.FormatTypeReference (iface.InterfaceType, settings));
 
 		foreach (var field in type.Fields.OfType<FieldDefinition> ().Where (f => f.ShouldBindFieldAsConstant ()))
-			t.Fields.Add (BoundField.Create (field));
+			t.Fields.Add (BoundField.Create (field, settings));
 
 		foreach (var field in type.Fields.OfType<FieldDefinition> ().Where (f => f.ShouldBindFieldAsProperty ()))
-			t.Properties.Add (BoundFieldAsProperty.Create (field));
-
-		// TODO: Methods
+			t.Properties.Add (BoundFieldAsProperty.Create (field, settings));
 
 		foreach (var method in type.Methods.OfType<MethodDefinition> ().Where (m => m.ShouldBindInterfaceMethodAsDeclaration ()))
-			if (BoundInterfaceMethodDeclaration.Create (method, type) is MethodWriter m)
+			if (BoundInterfaceMethodDeclaration.Create (method, type, settings) is MethodWriter m)
 				t.Methods.Add (m);
 
 		foreach (var method in type.Methods.OfType<MethodDefinition> ().Where (m => m.ShouldBindInterfaceMethodAsImplementation ()))
-			if (BoundMethod.Create (method, type) is MethodWriter m)
+			if (BoundMethod.Create (method, type, settings) is MethodWriter m)
 				t.Methods.Add (m);
 
 		return t;

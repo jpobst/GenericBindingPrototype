@@ -9,6 +9,7 @@ namespace Xamarin.SourceWriter
 		Visibility visibility;
 		int current_priority = 1;
 
+		public string Namespace { get; set; }
 		public string Name { get; set; }
 		public string Inherits { get; set; }
 		public List<string> Implements { get; } = new List<string> ();

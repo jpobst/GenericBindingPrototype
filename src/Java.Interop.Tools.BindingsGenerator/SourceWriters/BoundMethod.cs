@@ -5,10 +5,10 @@ namespace Java.Interop.Tools.BindingsGenerator;
 
 class BoundMethod : MethodWriter
 {
-	public static BoundMethod? Create (MethodDefinition method, TypeDefinition type)
+	public static BoundMethod? Create (MethodDefinition method, TypeDefinition type, GeneratorSettings settings)
 	{
 		var m = new BoundMethod {
-			Name = method.GetName ()
+			Name = method.GetManagedGenericName (settings)
 		};
 
 		var base_method = method.FindDeclaredBaseMethodOrDefault ();
@@ -55,7 +55,7 @@ class BoundMethod : MethodWriter
 			foreach (var gp in method.GenericParameters) {
 				if (gp.InterfaceBounds is not null)
 					foreach (var tr in gp.InterfaceBounds)
-						m.GenericConstraints.Add (new GenericConstraintModel (gp.Name, FormatExtensions.FormatTypeReference (tr)));
+						m.GenericConstraints.Add (new GenericConstraintModel (gp.Name, FormatExtensions.FormatTypeReference (tr, settings)));
 			}
 
 		if (method.GetExplicitInterface () is ImplementedInterface explicit_interface) {
@@ -66,14 +66,14 @@ class BoundMethod : MethodWriter
 			else
 				mapping.AddMappingToImplementedInterface (type, explicit_interface);
 
-			m.ExplicitInterfaceImplementation = FormatExtensions.FormatTypeReference (mapping.GetMappedReference (explicit_interface.InterfaceType));
+			m.ExplicitInterfaceImplementation = FormatExtensions.FormatTypeReference (mapping.GetMappedReference (explicit_interface.InterfaceType), settings);
 		}
 
-		m.ReturnType = new TypeReferenceWriter (FormatExtensions.FormatTypeReference (effective_return_type));
+		m.ReturnType = new TypeReferenceWriter (FormatExtensions.FormatTypeReference (effective_return_type, settings));
 
 		if (method.HasParameters)
 			foreach (var p in method.Parameters)
-				m.Parameters.Add (new MethodParameterWriter (p.GetName (), new TypeReferenceWriter (FormatExtensions.FormatTypeReference (p.ParameterType))));
+				m.Parameters.Add (new MethodParameterWriter (p.GetManagedName (settings), new TypeReferenceWriter (FormatExtensions.FormatTypeReference (p.ParameterType, settings))));
 
 		if (!m.IsAbstract)
 			m.Body.Add ("throw new global::System.NotImplementedException ();");
