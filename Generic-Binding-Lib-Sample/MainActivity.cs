@@ -48,19 +48,25 @@ namespace Generic_Binding_Lib_Sample
 		{
 			readonly List<T> list = new List<T> ();
 
-			public bool Add (T p0)
+			public bool Add (T? p0)
 			{
+				if (p0 == null) {
+					return false;
+				}
 				list.Add (p0);
 				return true;
 			}
 
-			public bool AddAll (ICollection<T> p0)
+			public bool AddAll (ICollection<T>? p0)
 			{
+				if (p0 == null) {
+					return false;
+				}
 				list.AddRange (p0);
 				return true;
 			}
 
-			public T Get (int p0)
+			public T? Get (int p0)
 			{
 				return list [p0];
 			}
@@ -85,20 +91,23 @@ namespace Generic_Binding_Lib_Sample
 			System.Diagnostics.Debug.WriteLine (t2);
 
 			var tv = FindViewById<TextView> (Resource.Id.textView1);
+			if (tv == null) {
+				return;
+			}
 
 			tv.Text = t1 + System.Environment.NewLine + t2;
 		}
 
 		public class MyErasedGenericType : ErasedGenericType
 		{
-			public override void PerformanceMethod (Java.Lang.Object p0)
+			public override void PerformanceMethod (Java.Lang.Object? p0)
 			{
 			}
 		}
 
 		public class MyGenericType<T> : GenericType<T> where T : Java.Lang.Object
 		{
-			public override void PerformanceMethod (T p0)
+			public override void PerformanceMethod (T? p0)
 			{
 			}
 		}

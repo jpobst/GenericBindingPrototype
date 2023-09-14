@@ -53,7 +53,7 @@ namespace Example {
 			}
 		}
 
-		static Delegate cb_PerformanceMethod_Ljava_lang_Object_;
+		static Delegate? cb_PerformanceMethod_Ljava_lang_Object_;
 #pragma warning disable 0169
 		static Delegate GetPerformanceMethod_Ljava_lang_Object_Handler ()
 		{
@@ -66,13 +66,13 @@ namespace Example {
 		{
 			var __this = global::Java.Lang.Object.GetObject<global::Example.ErasedGenericType> (jnienv, native__this, JniHandleOwnership.DoNotTransfer);
 			var p0 = global::Java.Lang.Object.GetObject<global::Java.Lang.Object> (native_p0, JniHandleOwnership.DoNotTransfer);
-			__this.PerformanceMethod (p0);
+			__this!.PerformanceMethod (p0);
 		}
 #pragma warning restore 0169
 
 		// Metadata.xml XPath method reference: path="/api/package[@name='example']/class[@name='ErasedGenericType']/method[@name='PerformanceMethod' and count(parameter)=1 and parameter[1][@type='T']]"
 		[Register ("PerformanceMethod", "(Ljava/lang/Object;)V", "GetPerformanceMethod_Ljava_lang_Object_Handler")]
-		public virtual unsafe void PerformanceMethod (global::Java.Lang.Object p0)
+		public virtual unsafe void PerformanceMethod (global::Java.Lang.Object? p0)
 		{
 			const string __id = "PerformanceMethod.(Ljava/lang/Object;)V";
 			IntPtr native_p0 = JNIEnv.ToLocalJniHandle (p0);

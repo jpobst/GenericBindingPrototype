@@ -57,7 +57,7 @@ namespace Example {
 			}
 		}
 
-		static Delegate cb_add_Ljava_lang_Object_;
+		static Delegate? cb_add_Ljava_lang_Object_;
 #pragma warning disable 0169
 		static Delegate GetAdd_Ljava_lang_Object_Handler ()
 		{
@@ -70,14 +70,14 @@ namespace Example {
 		{
 			var __this = global::Java.Lang.Object.GetObject<global::Example.CustomListConsumer> (jnienv, native__this, JniHandleOwnership.DoNotTransfer);
 			var p0 = global::Java.Lang.Object.GetObject<global::Java.Lang.Object> (native_p0, JniHandleOwnership.DoNotTransfer);
-			bool __ret = __this.Add (p0);
+			bool __ret = __this!.Add (p0);
 			return __ret;
 		}
 #pragma warning restore 0169
 
 		// Metadata.xml XPath method reference: path="/api/package[@name='example']/class[@name='CustomListConsumer']/method[@name='add' and count(parameter)=1 and parameter[1][@type='E']]"
 		[Register ("add", "(Ljava/lang/Object;)Z", "GetAdd_Ljava_lang_Object_Handler")]
-		public virtual unsafe bool Add (global::Java.Lang.Object p0)
+		public virtual unsafe bool Add (global::Java.Lang.Object? p0)
 		{
 			const string __id = "add.(Ljava/lang/Object;)Z";
 			IntPtr native_p0 = JNIEnv.ToLocalJniHandle (p0);
@@ -92,7 +92,7 @@ namespace Example {
 			}
 		}
 
-		static Delegate cb_addAll_Ljava_util_Collection_;
+		static Delegate? cb_addAll_Ljava_util_Collection_;
 #pragma warning disable 0169
 		static Delegate GetAddAll_Ljava_util_Collection_Handler ()
 		{
@@ -105,14 +105,14 @@ namespace Example {
 		{
 			var __this = global::Java.Lang.Object.GetObject<global::Example.CustomListConsumer> (jnienv, native__this, JniHandleOwnership.DoNotTransfer);
 			var p0 = global::Android.Runtime.JavaCollection.FromJniHandle (native_p0, JniHandleOwnership.DoNotTransfer);
-			bool __ret = __this.AddAll (p0);
+			bool __ret = __this!.AddAll (p0);
 			return __ret;
 		}
 #pragma warning restore 0169
 
 		// Metadata.xml XPath method reference: path="/api/package[@name='example']/class[@name='CustomListConsumer']/method[@name='addAll' and count(parameter)=1 and parameter[1][@type='java.util.Collection&lt;? extends E&gt;']]"
 		[Register ("addAll", "(Ljava/util/Collection;)Z", "GetAddAll_Ljava_util_Collection_Handler")]
-		public virtual unsafe bool AddAll (global::System.Collections.ICollection p0)
+		public virtual unsafe bool AddAll (global::System.Collections.ICollection? p0)
 		{
 			const string __id = "addAll.(Ljava/util/Collection;)Z";
 			IntPtr native_p0 = global::Android.Runtime.JavaCollection.ToLocalJniHandle (p0);
@@ -127,7 +127,7 @@ namespace Example {
 			}
 		}
 
-		static Delegate cb_get_I;
+		static Delegate? cb_get_I;
 #pragma warning disable 0169
 		static Delegate GetGet_IHandler ()
 		{
@@ -139,20 +139,20 @@ namespace Example {
 		static IntPtr n_Get_I (IntPtr jnienv, IntPtr native__this, int p0)
 		{
 			var __this = global::Java.Lang.Object.GetObject<global::Example.CustomListConsumer> (jnienv, native__this, JniHandleOwnership.DoNotTransfer);
-			return JNIEnv.ToLocalJniHandle (__this.Get (p0));
+			return JNIEnv.ToLocalJniHandle (__this!.Get (p0));
 		}
 #pragma warning restore 0169
 
 		// Metadata.xml XPath method reference: path="/api/package[@name='example']/class[@name='CustomListConsumer']/method[@name='get' and count(parameter)=1 and parameter[1][@type='int']]"
 		[Register ("get", "(I)Ljava/lang/Object;", "GetGet_IHandler")]
-		public virtual unsafe global::Java.Lang.Object Get (int p0)
+		public virtual unsafe global::Java.Lang.Object? Get (int p0)
 		{
 			const string __id = "get.(I)Ljava/lang/Object;";
 			try {
 				JniArgumentValue* __args = stackalloc JniArgumentValue [1];
 				__args [0] = new JniArgumentValue (p0);
 				var __rm = _members.InstanceMethods.InvokeVirtualObjectMethod (__id, this, __args);
-				return (global::Java.Lang.Object) global::Java.Lang.Object.GetObject<global::Java.Lang.Object> (__rm.Handle, JniHandleOwnership.TransferLocalRef);
+				return (global::Java.Lang.Object?) global::Java.Lang.Object.GetObject<global::Java.Lang.Object> (__rm.Handle, JniHandleOwnership.TransferLocalRef);
 			} finally {
 			}
 		}
